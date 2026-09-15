@@ -192,11 +192,11 @@ namespace nucleus
                 {
                     scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
 
-                    // gets screen res which is always forced from code above. https://docs.unity3d.com/2017.1/Documentation/ScriptReference/UI.CanvasScaler-referenceResolution.html
-                    scaler.referenceResolution = new Vector2(Screen.width, Screen.height);
+                    // forces to 1080p most normal res, this is a base for the option below. https://docs.unity3d.com/2017.1/Documentation/ScriptReference/UI.CanvasScaler-referenceResolution.html
+                    scaler.referenceResolution = new Vector2(1920, 1080);
 
-                    // https://docs.unity3d.com/2017.1/Documentation/ScriptReference/UI.CanvasScaler-matchWidthOrHeight.html
-                    scaler.matchWidthOrHeight = 0.5f;
+                    // .expand basically auto forces res the 1080p menu (above) into the current screen size. either choosing Y or X to fit the screen. https://docs.unity3d.com/2019.1/Documentation/ScriptReference/UI.CanvasScaler.ScreenMatchMode.Expand.html
+                    scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
                 }
             }
         }
