@@ -144,6 +144,7 @@ namespace nucleus
             UnityFixesPlugin.Logger.LogInfo("      NUCLEUS UNITY FIXES IL2CPP      ");
             UnityFixesPlugin.Logger.LogInfo($"Resolution   : {targetWidth}x{targetHeight}");
             UnityFixesPlugin.Logger.LogInfo($"3D Aspect Ratio : {(targetAspect > 0f ? targetAspect.ToString(CultureInfo.InvariantCulture) : "Native")}");
+            UnityFixesPlugin.Logger.LogInfo($"UI Scale     : {uiScaleMultiplier}x");
             UnityFixesPlugin.Logger.LogInfo($"Save Folder  : {finalSavePath}");
 
             AplicarConfiguracoesTela();
