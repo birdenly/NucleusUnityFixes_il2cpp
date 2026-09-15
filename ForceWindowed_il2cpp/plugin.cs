@@ -118,6 +118,7 @@ namespace nucleus
         private bool debugLog = false;
         public static string playerSaveSuffix = "";
         private float uiCheckTimer = 0f;
+        private float uiScaleMultiplier = 1.0f;
 
         private void Awake()
         {
@@ -130,6 +131,7 @@ namespace nucleus
                 else if (argLower == "-screen-height" && i + 1 < args.Length) int.TryParse(args[i + 1], out targetHeight);
                 else if (argLower == "-aspect" && i + 1 < args.Length) float.TryParse(args[i + 1], NumberStyles.Any, CultureInfo.InvariantCulture, out targetAspect);
                 else if (argLower == "-playersave" && i + 1 < args.Length) playerSaveSuffix = args[i + 1];
+                else if (argLower == "-ui" && i + 1 < args.Length) uiScaleMultiplier = float.Parse(args[i + 1], CultureInfo.InvariantCulture);
             }
 
             string finalSavePath = "Default";
@@ -192,8 +194,11 @@ namespace nucleus
                 {
                     scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
 
+                    float scaledWidth = 1920f / uiScaleMultiplier;
+                    float scaledHeight = 1080f / uiScaleMultiplier;
+
                     // forces to 1080p most normal res, this is a base for the option below. https://docs.unity3d.com/2017.1/Documentation/ScriptReference/UI.CanvasScaler-referenceResolution.html
-                    scaler.referenceResolution = new Vector2(1920, 1080);
+                    scaler.referenceResolution = new Vector2(scaledWidth, scaledHeight);
 
                     // .expand basically auto forces res the 1080p menu (above) into the current screen size. either choosing Y or X to fit the screen. https://docs.unity3d.com/2019.1/Documentation/ScriptReference/UI.CanvasScaler.ScreenMatchMode.Expand.html
                     scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
