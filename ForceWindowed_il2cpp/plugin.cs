@@ -149,7 +149,7 @@ namespace nucleus
             UnityFixesPlugin.Logger.LogInfo($"UI Scale     : {uiScaleMultiplier}x");
             UnityFixesPlugin.Logger.LogInfo($"Save Folder  : {finalSavePath}");
 
-            AplicarConfiguracoesTela();
+            applyScreenSettings();
         }
 
         private void Update()
@@ -160,7 +160,7 @@ namespace nucleus
             // Force windowed mode and resolution if it changes
             if (Screen.width != targetWidth || Screen.height != targetHeight || Screen.fullScreenMode != FullScreenMode.Windowed || Screen.fullScreen)
             {
-                AplicarConfiguracoesTela();
+                applyScreenSettings();
             }
 
             // This is for IN-GAME asprect ratio or mostly 3D stuff.
@@ -181,7 +181,7 @@ namespace nucleus
             }
             }
 
-        private void AplicarConfiguracoesTela()
+        private void applyScreenSettings()
         {
             //force res/windowed
             Screen.SetResolution(targetWidth, targetHeight, FullScreenMode.Windowed);
