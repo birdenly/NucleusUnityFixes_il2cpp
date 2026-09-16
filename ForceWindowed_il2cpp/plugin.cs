@@ -175,7 +175,7 @@ namespace nucleus
                 uiCheckTimer += Time.deltaTime;
                 if (uiCheckTimer >= 2f)
                 {
-                    AjustarCanvasScalers();
+                    ChangeCanvasScalers();
                     uiCheckTimer = 0f;
                 }
             }
@@ -190,7 +190,7 @@ namespace nucleus
         }
 
         //This forces the aspect ratio of menus/UI to match the current screen resolution, preventing menus going fully off screen.
-        private void AjustarCanvasScalers()
+        private void ChangeCanvasScalers()
         {
             // All the menu/ui
             CanvasScaler[] scalers = FindObjectsOfType<CanvasScaler>();
