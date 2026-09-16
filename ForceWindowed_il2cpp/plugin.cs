@@ -10,6 +10,7 @@ using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using BepInEx.Logging;
 using HarmonyLib;
+using UnityEngine.Video;
 using Il2CppInterop.Runtime.Injection;
 
 namespace nucleus
@@ -117,10 +118,11 @@ namespace nucleus
         private float targetAspect = 0f;
         private bool debugLog = false;
         public static string playerSaveSuffix = "";
-        private float uiCheckTimer = 0f;
+        private float checkTimer = 0f;
         private int uiautoscale = 0;
         private float uiScaleMultiplier = 1.0f;
         private int fpsLimit = 0;
+        private int videoPlayerStretch = 0;
 
         private void Awake()
         {
@@ -136,8 +138,9 @@ namespace nucleus
                 else if (argLower == "-uiautoscale" && i + 1 < args.Length) int.TryParse(args[i + 1], out uiautoscale);
                 else if (argLower == "-ui" && i + 1 < args.Length) uiScaleMultiplier = float.Parse(args[i + 1], CultureInfo.InvariantCulture);
                 else if (argLower == "-fpslimit" && i + 1 < args.Length) int.TryParse(args[i + 1], out fpsLimit);
+                else if (argLower == "-videoplayerstretch" && i + 1 < args.Length) int.TryParse(args[i + 1], out videoPlayerStretch);
             }
-
+            
             string finalSavePath = "Default";
             if (!string.IsNullOrEmpty(playerSaveSuffix))
             {
@@ -156,6 +159,16 @@ namespace nucleus
             if (fpsLimit > 0)
             {
                 FpsLimiter();
+            }
+
+            if (videoPlayerStretch == 1)
+            {
+                StretchVideoPlayer();
+            }
+
+            if (uiautoscale == 1)
+            {
+                ChangeCanvasScalers();
             }
         }
 
@@ -176,17 +189,27 @@ namespace nucleus
                 Camera.main.aspect = targetAspect;
             }
 
-            // force menus/UI
-            if (uiautoscale == 1)
+            // force menus/UI and video player every few seconds, these 2 have loops inside which is why they only run every 2s.
+            if (uiautoscale == 1 || videoPlayerStretch == 1)
             {
-                uiCheckTimer += Time.deltaTime;
-                if (uiCheckTimer >= 2f)
+                checkTimer += Time.deltaTime;
+                if (checkTimer >= 2f)
                 {
-                    ChangeCanvasScalers();
-                    uiCheckTimer = 0f;
+                    if (uiautoscale == 1) {
+                        ChangeCanvasScalers();
+                    };
+                    if (videoPlayerStretch == 1) {
+                        StretchVideoPlayer();
+                    }
+                    checkTimer = 0f;  
                 }
             }
+
+            if (fpsLimit > 0)
+            {
+                FpsLimiter();
             }
+        }
 
         private void applyScreenSettings()
         {
@@ -223,6 +246,19 @@ namespace nucleus
         {
             QualitySettings.vSyncCount = 0; 
             Application.targetFrameRate = fpsLimit;
+        }
+        //https://docs.unity3d.com/6000.5/Documentation/ScriptReference/Video.VideoAspectRatio.html
+        private void StretchVideoPlayer()
+        {
+            VideoPlayer[] videos = FindObjectsOfType<VideoPlayer>();
+            foreach (var vp in videos)
+            {
+                if (vp != null)
+                {
+                    // usually aspect come as .FitInside, so a 16:9 video will fit correct in a 32:9. This will make it streatch if preffered.
+                    vp.aspectRatio = UnityEngine.Video.VideoAspectRatio.Stretch;
+                }
+            }
         }
     }
 

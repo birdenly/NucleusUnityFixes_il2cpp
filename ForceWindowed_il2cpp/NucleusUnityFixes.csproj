@@ -35,6 +35,9 @@
     <Reference Include="UnityEngine.UIModule">
       <HintPath>E:\SteamLibrary\steamapps\common\OrbitalCrash\BepInEx\interop\UnityEngine.UIModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.VideoModule">
+      <HintPath>E:\SteamLibrary\steamapps\common\OrbitalCrash\BepInEx\interop\UnityEngine.VideoModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
