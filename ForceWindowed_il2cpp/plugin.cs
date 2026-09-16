@@ -118,6 +118,7 @@ namespace nucleus
         private bool debugLog = false;
         public static string playerSaveSuffix = "";
         private float uiCheckTimer = 0f;
+        private int uiautoscale = 0;
         private float uiScaleMultiplier = 1.0f;
 
         private void Awake()
@@ -131,6 +132,7 @@ namespace nucleus
                 else if (argLower == "-screen-height" && i + 1 < args.Length) int.TryParse(args[i + 1], out targetHeight);
                 else if (argLower == "-aspect" && i + 1 < args.Length) float.TryParse(args[i + 1], NumberStyles.Any, CultureInfo.InvariantCulture, out targetAspect);
                 else if (argLower == "-playersave" && i + 1 < args.Length) playerSaveSuffix = args[i + 1];
+                else if (argLower == "-uiautoscale" && i + 1 < args.Length) int.TryParse(args[i + 1], out uiautoscale);
                 else if (argLower == "-ui" && i + 1 < args.Length) uiScaleMultiplier = float.Parse(args[i + 1], CultureInfo.InvariantCulture);
             }
 
@@ -168,13 +170,16 @@ namespace nucleus
             }
 
             // force menus/UI
-            uiCheckTimer += Time.deltaTime;
-            if (uiCheckTimer >= 2f)
+            if (uiautoscale == 1)
             {
-                AjustarCanvasScalers();
-                uiCheckTimer = 0f;
+                uiCheckTimer += Time.deltaTime;
+                if (uiCheckTimer >= 2f)
+                {
+                    AjustarCanvasScalers();
+                    uiCheckTimer = 0f;
+                }
             }
-        }
+            }
 
         private void AplicarConfiguracoesTela()
         {
