@@ -120,6 +120,7 @@ namespace nucleus
         private float uiCheckTimer = 0f;
         private int uiautoscale = 0;
         private float uiScaleMultiplier = 1.0f;
+        private int fpsLimit = 0;
 
         private void Awake()
         {
@@ -134,6 +135,7 @@ namespace nucleus
                 else if (argLower == "-playersave" && i + 1 < args.Length) playerSaveSuffix = args[i + 1];
                 else if (argLower == "-uiautoscale" && i + 1 < args.Length) int.TryParse(args[i + 1], out uiautoscale);
                 else if (argLower == "-ui" && i + 1 < args.Length) uiScaleMultiplier = float.Parse(args[i + 1], CultureInfo.InvariantCulture);
+                else if (argLower == "-fpslimit" && i + 1 < args.Length) int.TryParse(args[i + 1], out fpsLimit);
             }
 
             string finalSavePath = "Default";
@@ -150,6 +152,11 @@ namespace nucleus
             UnityFixesPlugin.Logger.LogInfo($"Save Folder  : {finalSavePath}");
 
             applyScreenSettings();
+
+            if (fpsLimit > 0)
+            {
+                FpsLimiter();
+            }
         }
 
         private void Update()
@@ -210,6 +217,12 @@ namespace nucleus
                     scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
                 }
             }
+        }
+        //https://docs.unity3d.com/6000.5/Documentation/ScriptReference/Application-targetFrameRate.html
+        private void FpsLimiter()
+        {
+            QualitySettings.vSyncCount = 0; 
+            Application.targetFrameRate = fpsLimit;
         }
     }
 
