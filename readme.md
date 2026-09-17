@@ -1,11 +1,24 @@
-Il2cpp:
-always force windowed (-popupwindow to make it bordless, it doesnt make bordeless back to windowed)
-args:
--screen-width  X
--screen-height X
--aspect X.0: 3d elements aspect ratio
--playersave Name: saves to currentFolder/NC_SAVE/Name. think current folder is better as we got backupfolder + as standalone it can be used to make the game portable
--uiautoscale 1: uses the width/height to place canvas (2d elements, usually UI) correct in the window. just sets a scaler to a better method, not sure why isnt default
--ui X: will scale the current UI * X
--fpslimit X: disable vsync and limit to X
--injectdlls X,Y,Z: Injects into the game with LoadLibraly in the same order passed. Currenly none i have tried worked.
+# NucleusUnityFixes_il2cpp
+
+Download the latest BepInEx IL2CPP build here:
+https://builds.bepinex.dev/projects/bepinex_be
+
+This always force windowed mode, combo with `-popupwindow` to keep it borderless without snapping back to a normal windowed state.
+
+## Args
+
+- `-screen-width X`: sets the window width. See Unity docs: [Device.Screen.SetResolution](https://docs.unity3d.com/6000.5/Documentation/ScriptReference/Device.Screen.SetResolution.html) and [FullScreenMode](https://docs.unity3d.com/6000.5/Documentation/ScriptReference/FullScreenMode.html)
+
+- `-screen-height X`: sets the window height. See Unity docs: [Device.Screen.SetResolution](https://docs.unity3d.com/6000.5/Documentation/ScriptReference/Device.Screen.SetResolution.html) and [FullScreenMode](https://docs.unity3d.com/6000.5/Documentation/ScriptReference/FullScreenMode.html)
+
+- `-aspect X.0`: sets the 3D element aspect ratio. See Unity docs: [Camera.aspect](https://docs.unity3d.com/6000.5/Documentation/ScriptReference/Camera-aspect.html)
+
+- `-playersave Name`: saves to `currentFolder/NC_SAVE/Name`. Using the current folder seems better because it keeps the backup folder and makes the game portable as a standalone. See Unity docs: [Application.persistentDataPath](https://docs.unity3d.com/6000.5/Documentation/ScriptReference/Application-persistentDataPath.html)
+
+- `-uiautoscale 1`: uses the width and height to place UI elements correctly in the window. It sets a more suitable canvas scaler method, though it is not the default. See Unity docs: [CanvasScaler](https://docs.unity3d.com/2019.1/Documentation/ScriptReference/UI.CanvasScaler.html)
+
+- `-ui X`: scales the current UI by `X`. See Unity docs: [CanvasScaler.referenceResolution](https://docs.unity3d.com/2017.1/Documentation/ScriptReference/UI.CanvasScaler-referenceResolution.html)
+
+- `-fpslimit X`: disables VSync and limits the frame rate to `X`. See Unity docs: [Application.targetFrameRate](https://docs.unity3d.com/6000.5/Documentation/ScriptReference/Application-targetFrameRate.html)
+
+- `-injectdlls X,Y,Z`: injects DLLs into the game with `LoadLibrary` in the same order they are passed. So far, none of the ones I tried have worked.
