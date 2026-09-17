@@ -35,7 +35,7 @@ namespace nucleus
         }
     }
 
-    // This is used to make our own custom save that intercepts the legit one. changing path or other stuff simply didnt work, at least in a way that would work for multiple games.
+    // This is used to make our own custom save manager that is intercepted later down the code.
     public static class CustomPrefsManager
     {
         public class PrefsData
@@ -117,12 +117,11 @@ namespace nucleus
         private int targetHeight = 720;
         private float targetAspect = 0f;
         private bool debugLog = false;
-        public static string playerSaveSuffix = "";
+        public static string playerSaveName = "";
         private float checkTimer = 0f;
         private int uiautoscale = 0;
         private float uiScaleMultiplier = 1.0f;
         private int fpsLimit = 0;
-        private int videoPlayerStretch = 0;
 
         private void Awake()
         {
@@ -134,18 +133,17 @@ namespace nucleus
                 if (argLower == "-screen-width" && i + 1 < args.Length) int.TryParse(args[i + 1], out targetWidth);
                 else if (argLower == "-screen-height" && i + 1 < args.Length) int.TryParse(args[i + 1], out targetHeight);
                 else if (argLower == "-aspect" && i + 1 < args.Length) float.TryParse(args[i + 1], NumberStyles.Any, CultureInfo.InvariantCulture, out targetAspect);
-                else if (argLower == "-playersave" && i + 1 < args.Length) playerSaveSuffix = args[i + 1];
+                else if (argLower == "-playersave" && i + 1 < args.Length) playerSaveName = args[i + 1];
                 else if (argLower == "-uiautoscale" && i + 1 < args.Length) int.TryParse(args[i + 1], out uiautoscale);
                 else if (argLower == "-ui" && i + 1 < args.Length) uiScaleMultiplier = float.Parse(args[i + 1], CultureInfo.InvariantCulture);
                 else if (argLower == "-fpslimit" && i + 1 < args.Length) int.TryParse(args[i + 1], out fpsLimit);
-                else if (argLower == "-videoplayerstretch" && i + 1 < args.Length) int.TryParse(args[i + 1], out videoPlayerStretch);
             }
-            
+
             string finalSavePath = "Default";
-            if (!string.IsNullOrEmpty(playerSaveSuffix))
+            if (!string.IsNullOrEmpty(playerSaveName))
             {
-                CustomPrefsManager.Initialize(playerSaveSuffix);
-                finalSavePath = Path.Combine(Environment.CurrentDirectory, "NC_Saves", playerSaveSuffix);
+                CustomPrefsManager.Initialize(playerSaveName);
+                finalSavePath = Path.Combine(Environment.CurrentDirectory, "NC_Saves", playerSaveName);
             }
 
             UnityFixesPlugin.Logger.LogInfo("      NUCLEUS UNITY FIXES IL2CPP      ");
@@ -159,11 +157,6 @@ namespace nucleus
             if (fpsLimit > 0)
             {
                 FpsLimiter();
-            }
-
-            if (videoPlayerStretch == 1)
-            {
-                StretchVideoPlayer();
             }
 
             if (uiautoscale == 1)
@@ -190,17 +183,12 @@ namespace nucleus
             }
 
             // force menus/UI and video player every few seconds, these 2 have loops inside which is why they only run every 2s.
-            if (uiautoscale == 1 || videoPlayerStretch == 1)
+            if (uiautoscale == 1 )
             {
                 checkTimer += Time.deltaTime;
                 if (checkTimer >= 2f)
                 {
-                    if (uiautoscale == 1) {
-                        ChangeCanvasScalers();
-                    };
-                    if (videoPlayerStretch == 1) {
-                        StretchVideoPlayer();
-                    }
+                    ChangeCanvasScalers();
                     checkTimer = 0f;  
                 }
             }
@@ -248,33 +236,20 @@ namespace nucleus
             Application.targetFrameRate = fpsLimit;
         }
         //https://docs.unity3d.com/6000.5/Documentation/ScriptReference/Video.VideoAspectRatio.html
-        private void StretchVideoPlayer()
-        {
-            VideoPlayer[] videos = FindObjectsOfType<VideoPlayer>();
-            foreach (var vp in videos)
-            {
-                if (vp != null)
-                {
-                    // usually aspect come as .FitInside, so a 16:9 video will fit correct in a 32:9. This will make it streatch if preffered.
-                    vp.aspectRatio = UnityEngine.Video.VideoAspectRatio.Stretch;
-                }
-            }
-        }
     }
 
-    // All the stuff under will intercept the default Unity behavior to redirect the save path and PlayerPrefs to a custom location based on the playerSaveSuffix.
-    // everything under this was fully AI as i couldnt figure out how to do different saves, even the current method doesnt fully separete everything.
+    // This changes the way the game saves, usually to locallow/company/gameName, now goes to the current dir together with the playerPrefs. This doesnt redirect the logs for some reason.
     [HarmonyPatch(typeof(Application), "get_persistentDataPath")]
     public static class PersistentDataPathPatch
     {
         public static bool Prefix(ref string __result)
         {
-            if (!string.IsNullOrEmpty(UnityFixesBehavior.playerSaveSuffix))
+            if (!string.IsNullOrEmpty(UnityFixesBehavior.playerSaveName))
             {
                 try
                 {
                     string basePath = Environment.CurrentDirectory;
-                    string customPath = Path.Combine(basePath, "NC_Saves", UnityFixesBehavior.playerSaveSuffix);
+                    string customPath = Path.Combine(basePath, "NC_Saves", UnityFixesBehavior.playerSaveName);
                     if (!Directory.Exists(customPath)) Directory.CreateDirectory(customPath);
                     __result = customPath;
                     return false;
@@ -288,11 +263,11 @@ namespace nucleus
             return true;
         }
     }
-
+    // Everything under this is fully AI, this intercepts playerPrefs to be then saved by our own custom save.
     [HarmonyPatch(typeof(PlayerPrefs))]
     public static class PlayerPrefsPatches
     {
-        private static bool ShouldBypass() => !string.IsNullOrEmpty(UnityFixesBehavior.playerSaveSuffix);
+        private static bool ShouldBypass() => !string.IsNullOrEmpty(UnityFixesBehavior.playerSaveName);
 
         [HarmonyPatch(nameof(PlayerPrefs.SetInt))]
         [HarmonyPrefix]
