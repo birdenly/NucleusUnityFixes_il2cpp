@@ -1,17 +1,18 @@
 ﻿#nullable disable
+using BepInEx;
+using BepInEx.Logging;
+using BepInEx.Unity.IL2CPP;
+using HarmonyLib;
+using Il2CppInterop.Runtime.Injection;
 using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using UnityEngine;
 using UnityEngine.UI;
-using BepInEx;
-using BepInEx.Unity.IL2CPP;
-using BepInEx.Logging;
-using HarmonyLib;
 using UnityEngine.Video;
-using Il2CppInterop.Runtime.Injection;
 
 namespace nucleus
 {
@@ -122,9 +123,14 @@ namespace nucleus
         private int uiautoscale = 0;
         private float uiScaleMultiplier = 1.0f;
         private int fpsLimit = 0;
+        private string dllsToInject = "";
 
+        //For forced dll injection.
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern IntPtr LoadLibrary(string lpFileName);
         private void Awake()
         {
+
             string[] args = Environment.GetCommandLineArgs();
 
             for (int i = 0; i < args.Length; i++)
@@ -137,6 +143,17 @@ namespace nucleus
                 else if (argLower == "-uiautoscale" && i + 1 < args.Length) int.TryParse(args[i + 1], out uiautoscale);
                 else if (argLower == "-ui" && i + 1 < args.Length) uiScaleMultiplier = float.Parse(args[i + 1], CultureInfo.InvariantCulture);
                 else if (argLower == "-fpslimit" && i + 1 < args.Length) int.TryParse(args[i + 1], out fpsLimit);
+                else if (argLower == "-injectdlls" && i + 1 < args.Length) dllsToInject = args[i + 1];
+            }
+
+            if (!string.IsNullOrEmpty(dllsToInject))
+            {
+                // CSV > List
+                string[] dlls = dllsToInject.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (string dll in dlls)
+                {
+                    InjectDlls(dll.Trim());
+                }
             }
 
             string finalSavePath = "Default";
@@ -149,7 +166,9 @@ namespace nucleus
             UnityFixesPlugin.Logger.LogInfo("      NUCLEUS UNITY FIXES IL2CPP      ");
             UnityFixesPlugin.Logger.LogInfo($"Resolution   : {targetWidth}x{targetHeight}");
             UnityFixesPlugin.Logger.LogInfo($"3D Aspect Ratio : {(targetAspect > 0f ? targetAspect.ToString(CultureInfo.InvariantCulture) : "Native")}");
+            UnityFixesPlugin.Logger.LogInfo($"UI Auto Scale    : {(uiautoscale == 1 ? "On" : "Off")}");
             UnityFixesPlugin.Logger.LogInfo($"UI Scale     : {uiScaleMultiplier}x");
+            UnityFixesPlugin.Logger.LogInfo($"FPS Limit    : {(fpsLimit > 0 ? fpsLimit.ToString() : "No limit done.")}");
             UnityFixesPlugin.Logger.LogInfo($"Save Folder  : {finalSavePath}");
 
             applyScreenSettings();
@@ -235,7 +254,27 @@ namespace nucleus
             QualitySettings.vSyncCount = 0; 
             Application.targetFrameRate = fpsLimit;
         }
-        //https://docs.unity3d.com/6000.5/Documentation/ScriptReference/Video.VideoAspectRatio.html
+        private void InjectDlls(string dllName)
+        {
+            string fullPath = Path.Combine(Environment.CurrentDirectory, dllName);
+
+            if (File.Exists(fullPath))
+            {
+                IntPtr handle = LoadLibrary(fullPath);
+                if (handle != IntPtr.Zero)
+                {
+                    UnityFixesPlugin.Logger.LogInfo($"[Injetor] Inject: {dllName}");
+                }
+                else
+                {
+                    UnityFixesPlugin.Logger.LogError($"[Injetor] Error injecting {dllName}");
+                }
+            }
+            else
+            {
+                UnityFixesPlugin.Logger.LogWarning($"[Injetor] File not found: {fullPath}");
+            }
+        }
     }
 
     // This changes the way the game saves, usually to locallow/company/gameName, now goes to the current dir together with the playerPrefs. This doesnt redirect the logs for some reason.
