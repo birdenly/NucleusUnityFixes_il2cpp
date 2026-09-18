@@ -22,3 +22,5 @@ This always force windowed mode, combo with `-popupwindow` to keep it borderless
 - `-fpslimit X`: disables VSync and limits the frame rate to `X`. See Unity docs: [Application.targetFrameRate](https://docs.unity3d.com/6000.5/Documentation/ScriptReference/Application-targetFrameRate.html)
 
 - `-injectdlls X,Y,Z`: injects DLLs into the game with `LoadLibrary` in the same order they are passed. So far, none of the ones I tried have worked.
+
+- `-fov X`: sets the field of view for the main camera. See Unity docs: [Camera.fieldOfView](https://docs.unity3d.com/6000.5/Documentation/ScriptReference/Camera-fieldOfView.html).

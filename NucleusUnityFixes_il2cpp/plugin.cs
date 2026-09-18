@@ -13,6 +13,7 @@ using System.Text.Json;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
+using static UnityEngine.GraphicsBuffer;
 
 namespace nucleus
 {
@@ -124,6 +125,7 @@ namespace nucleus
         private float uiScaleMultiplier = 1.0f;
         private int fpsLimit = 0;
         private string dllsToInject = "";
+        private float targetFov = 0f;
 
         //For forced dll injection.
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
@@ -144,6 +146,7 @@ namespace nucleus
                 else if (argLower == "-ui" && i + 1 < args.Length) uiScaleMultiplier = float.Parse(args[i + 1], CultureInfo.InvariantCulture);
                 else if (argLower == "-fpslimit" && i + 1 < args.Length) int.TryParse(args[i + 1], out fpsLimit);
                 else if (argLower == "-injectdlls" && i + 1 < args.Length) dllsToInject = args[i + 1];
+                else if (argLower == "-fov" && i + 1 < args.Length) float.TryParse(args[i + 1], NumberStyles.Any, CultureInfo.InvariantCulture, out targetFov);
             }
 
             if (!string.IsNullOrEmpty(dllsToInject))
@@ -168,6 +171,7 @@ namespace nucleus
             UnityFixesPlugin.Logger.LogInfo($"3D Aspect Ratio : {(targetAspect > 0f ? targetAspect.ToString(CultureInfo.InvariantCulture) : "Native")}");
             UnityFixesPlugin.Logger.LogInfo($"UI Auto Scale    : {(uiautoscale == 1 ? "On" : "Off")}");
             UnityFixesPlugin.Logger.LogInfo($"UI Scale     : {uiScaleMultiplier}x");
+            UnityFixesPlugin.Logger.LogInfo($"FOV       : {(targetFov > 0f ? targetFov.ToString(CultureInfo.InvariantCulture) : "Native")}");
             UnityFixesPlugin.Logger.LogInfo($"FPS Limit    : {(fpsLimit > 0 ? fpsLimit.ToString() : "No limit done.")}");
             UnityFixesPlugin.Logger.LogInfo($"Save Folder  : {finalSavePath}");
 
@@ -201,7 +205,14 @@ namespace nucleus
                 Camera.main.aspect = targetAspect;
             }
 
-            // force menus/UI and video player every few seconds, these 2 have loops inside which is why they only run every 2s.
+            // This is for IN-GAME FOV, mostly 3D stuff. But also effects some menus.
+            if (targetFov > 0f && Camera.main != null)
+            {
+                Camera.main.orthographic = false; // https://docs.unity3d.com/6000.5/Documentation/ScriptReference/Camera-fieldOfView.html
+                Camera.main.fieldOfView = targetFov;
+            }
+
+            // force menus/UI and video player every few seconds.
             if (uiautoscale == 1 )
             {
                 checkTimer += Time.deltaTime;
